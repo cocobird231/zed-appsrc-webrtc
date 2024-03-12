@@ -29,7 +29,7 @@ static gboolean GetData(MyAppData *app)
 
     // printf("Grab image!");
     // printf("Mat size: %dx%d (%d)\n", rgbMat.cols, rgbMat.rows, rgbMat.channels());
-    
+
     gsize size = rgbMat.rows * rgbMat.cols * rgbMat.channels();
     // gsize size = leftImg.getHeight() * leftImg.getWidth() * leftImg.getChannels();
     GstBuffer *buf = gst_buffer_new_allocate(NULL, size, NULL);
@@ -205,25 +205,6 @@ static void create_media_bins_and_link(GstElement *pipe, GstElement *wbin, MyApp
     GstPad *w_pad;
     GstElement *convert, *scale, *x264e, *queue, *rh264pay;
     GstCaps *caps;
-
-    // ZED setting
-    sl::InitParameters initParams;
-    sl::RuntimeParameters rtParams;
-
-    initParams.camera_resolution = sl::RESOLUTION::HD1080;
-    initParams.depth_mode = sl::DEPTH_MODE::PERFORMANCE;
-    initParams.coordinate_units = sl::UNIT::MILLIMETER;
-    initParams.camera_fps = app_data->cam_fps;
-    initParams.input.setFromCameraID(app_data->cam_id);
-
-    rtParams.enable_fill_mode = false;
-    ZEDAdaptor *zedAdaptor = new ZEDAdaptor(initParams, rtParams);
-    zedAdaptor->start();
-
-    // ZEDSrc init
-    app_data->zedsrc = (ZEDSrc *)malloc(sizeof(ZEDSrc));
-    app_data->zedsrc->zedAdaptor = zedAdaptor;
-    app_data->zedsrc->sourceid = 0;
 
     // GstAppSrc
     app_data->zedsrc->appsrc = gst_element_factory_make("appsrc", "source");

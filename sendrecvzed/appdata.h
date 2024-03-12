@@ -117,6 +117,8 @@ typedef struct _MyAppData
 
 extern MyAppData *MyAppData_new();
 
+extern void MyAppData_free(MyAppData *app_data);
+
 static inline const gchar *get_our_id(MyAppData *myappdata)
 {
     return myappdata->our_id;

@@ -139,6 +139,25 @@ static void MyAppData_init(MyAppData *app_data)
 
     app_data->cam_id = cam_id;
     app_data->cam_fps = cam_fps;
+
+    // ZED setting
+    sl::InitParameters initParams;
+    sl::RuntimeParameters rtParams;
+
+    initParams.camera_resolution = sl::RESOLUTION::HD1080;
+    initParams.depth_mode = sl::DEPTH_MODE::PERFORMANCE;
+    initParams.coordinate_units = sl::UNIT::MILLIMETER;
+    initParams.camera_fps = app_data->cam_fps;
+    initParams.input.setFromCameraID(app_data->cam_id);
+
+    rtParams.enable_fill_mode = false;
+    ZEDAdaptor *zedAdaptor = new ZEDAdaptor(initParams, rtParams);
+    zedAdaptor->start();
+
+    // ZEDSrc init
+    app_data->zedsrc = (ZEDSrc *)malloc(sizeof(ZEDSrc));
+    app_data->zedsrc->zedAdaptor = zedAdaptor;
+    app_data->zedsrc->sourceid = 0;
 }
 
 extern MyAppData *MyAppData_new()
@@ -150,6 +169,22 @@ extern MyAppData *MyAppData_new()
     return app_data;
 }
 
+extern void MyAppData_free(MyAppData *app_data)
+{
+    g_print("free appdata\n");
+    if (app_data)
+    {
+        if (app_data->zedsrc)
+        {
+            if (app_data->zedsrc->zedAdaptor)
+                delete app_data->zedsrc->zedAdaptor;
+            free(app_data->zedsrc);
+        }
+        if (app_data->gstdata)
+            free(app_data->gstdata);
+        free(app_data);
+    }
+}
 
 // ZED
 void ZEDAdaptor::_grabThread()
@@ -193,6 +228,10 @@ ZEDAdaptor::~ZEDAdaptor()
     this->exitF_ = true;
     if (this->gbType_ == ZEDAdaptorGrabType::LOOP)
         this->grabTh_.join();
+    if (this->zed_.isOpened())
+        this->zed_.close();
+    this->recvLeftMat_.release();
+    this->recvDepthMat_.release();
 }
 
 bool ZEDAdaptor::start(ZEDAdaptorGrabType type)

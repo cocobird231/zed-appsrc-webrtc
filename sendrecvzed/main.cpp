@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
     my_cmdline_check();
     if(!check_plugins())
         return -1;
-
+RESTART_TAG:
     MyAppData *app_data = MyAppData_new();
     app_data->main_loop = g_main_loop_new(NULL, FALSE);
 
@@ -76,6 +76,9 @@ int main(int argc, char *argv[])
         g_print("Pipeline stopped\n");
         gst_object_unref(app_data->gstdata->pipeline1);
     }
+
+    MyAppData_free(app_data);
+    goto RESTART_TAG;
 
     return 0;
 }
